@@ -12,10 +12,24 @@ public class Pawn : MonoBehaviour
         Gizmos.DrawWireCube(transform.position + new Vector3(0.5f * size.x - 0.5f, -0.5f * size.y + 0.5f), (Vector2)size);
     }
 
-    public bool Match(Vector2Int position)
+    public bool IsMatch(Vector2Int position)
     {
         return (this.position.x <= position.x && position.x < this.position.x + size.x &&
                 this.position.y <= position.y && position.y < this.position.y + size.y);
+    }
+
+    public bool IsOverlapping(Vector2Int position, Vector2Int size)
+    {
+        if (this.position.x + this.size.x <= position.x || position.x + size.x <= this.position.x) return false;
+        if (this.position.y + this.size.y <= position.y || position.y + size.y <= this.position.y) return false;
+        return true;
+    }
+
+    public static int ComparePosition(Pawn a, Pawn b)
+    {
+        int result = a.position.y.CompareTo(b.position.y);
+        if (result != 0) return result;
+        return a.position.x.CompareTo(b.position.x);
     }
 
     private Vector3 GetTransformPos()

@@ -31,18 +31,32 @@ public class GridManager : MonoBehaviour
         return grids[GetGridIndex(target)];
     }
 
+    public void SortGrid(GridTarget target)
+    {
+        GetGrid(target).Sort((a, b) => Pawn.ComparePosition(a, b));
+    }
+
 
     public Pawn GetPawn(Vector2Int position, GridTarget target)
     {
         Grid grid = GetGrid(target);
         foreach (Pawn pawn in grid)
         {
-            if (pawn.Match(position))
+            if (pawn.IsMatch(position))
             {
                 return pawn;
             }
         }
         return null;
+    }
+
+    public bool IsFree(Vector2Int position, Vector2Int size, GridTarget target)
+    {
+        foreach (Pawn pawn in GetGrid(target))
+        {
+            if (pawn.IsOverlapping(position, size)) return false;
+        }
+        return true;
     }
 
 
