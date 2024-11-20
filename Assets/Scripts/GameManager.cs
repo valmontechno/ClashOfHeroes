@@ -23,18 +23,11 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator MainTest()
     {
-        //yield return new WaitForSeconds(1);
-        //gridManager.GetPawn(new(0, 0), GridTarget.active).GoTo(new(7, 5));
-        //yield return new WaitForSeconds(1);
-        //ActivePlayer = 1;
-        //gridManager.GetPawn(new(3, 1), GridTarget.opponent).GoTo(new(5, 2));
-        //yield return new WaitForSeconds(1);
-        //gridManager.GetPawn(new(1, 5), GridTarget.active).GoTo(new(6, 4));
-
         yield return null;
 
-        gridManager.SortGrid(GridTarget.active);
+        yield return new WaitForSeconds(1);
 
-        print(gridManager.IsFree(new(1, 2), new(2, 2), GridTarget.active));
+        gridManager.CollapsePawns(GridTarget.Active);
+        gridManager.CollapsePawns(GridTarget.Opponent);
     }
 }

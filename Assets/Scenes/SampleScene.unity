@@ -260,7 +260,7 @@ MonoBehaviour:
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
     position: {x: 0, y: 0}
     grid: 0
-  - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
+  - gameObject: {fileID: 8344456043525709789, guid: 62c5d1ccc36610b44974fe7c827d73e9, type: 3}
     position: {x: 1, y: 1}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: b51570a43ba10b848a141d0f46365eb3, type: 3}

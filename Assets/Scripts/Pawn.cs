@@ -1,10 +1,20 @@
 using UnityEngine;
 
+public enum PawnCollapsePriority
+{
+    Wall, Formation, Default, Static
+}
+
 public class Pawn : MonoBehaviour
 {
     private int grid;
     private Vector2Int position;
     [SerializeField] private Vector2Int size = Vector2Int.one;
+    [SerializeField] private PawnCollapsePriority collapsePriority = PawnCollapsePriority.Default;
+
+    public Vector2Int Position { get => position; }
+    public Vector2Int Size { get => size; }
+    public PawnCollapsePriority CollapsePriority { get => collapsePriority; }
 
     private void OnDrawGizmosSelected()
     {

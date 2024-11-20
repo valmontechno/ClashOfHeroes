@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 using Grid = System.Collections.Generic.List<Pawn>;
 
 public enum GridTarget
 {
-    active, opponent
+    Active, Opponent
 }
 
 public class GridManager : MonoBehaviour
@@ -16,6 +15,8 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] Transform grid0Origin, grid1Origin;
 
+    public readonly Vector2Int gridSize = new(8, 6);
+
     private void Awake()
     {
         Instance = this;
@@ -23,7 +24,7 @@ public class GridManager : MonoBehaviour
 
     private int GetGridIndex(GridTarget target)
     {
-       return target == GridTarget.active ? GameManager.Instance.ActivePlayer : 1 - GameManager.Instance.ActivePlayer;
+       return target == GridTarget.Active ? GameManager.Instance.ActivePlayer : 1 - GameManager.Instance.ActivePlayer;
     }
 
     private Grid GetGrid(GridTarget target)
@@ -31,11 +32,23 @@ public class GridManager : MonoBehaviour
         return grids[GetGridIndex(target)];
     }
 
-    public void SortGrid(GridTarget target)
+    public void SortGrid(Grid grid)
     {
-        GetGrid(target).Sort((a, b) => Pawn.ComparePosition(a, b));
+        grid.Sort((a, b) => Pawn.ComparePosition(a, b));
     }
 
+    public Pawn GetPawnExactly(Vector2Int position, GridTarget target)
+    {
+        Grid grid = GetGrid(target);
+        foreach (Pawn pawn in grid)
+        {
+            if (pawn.Position == position)
+            {
+                return pawn;
+            }
+        }
+        return null;
+    }
 
     public Pawn GetPawn(Vector2Int position, GridTarget target)
     {
@@ -50,13 +63,38 @@ public class GridManager : MonoBehaviour
         return null;
     }
 
-    public bool IsFree(Vector2Int position, Vector2Int size, GridTarget target)
+    public bool IsFree(Vector2Int position, Vector2Int size, GridTarget target, Pawn ignored = null)
     {
+        if (position.x < 0 || position.y < 0 || position.x + size.x >= gridSize.x || position.y + size.y >= gridSize.y)
+            return false;
         foreach (Pawn pawn in GetGrid(target))
         {
+            if (pawn == ignored) continue;
             if (pawn.IsOverlapping(position, size)) return false;
         }
         return true;
+    }
+
+
+    public void CollapsePawns(GridTarget target)
+    {
+        Grid grid = GetGrid(target);
+        SortGrid(grid);
+
+        foreach (Pawn pawn in grid)
+        {
+            if (pawn.CollapsePriority == PawnCollapsePriority.Static)
+                continue;
+
+            Vector2Int pos = pawn.Position;
+            do
+            {
+                pos.y--;
+            } while (IsFree(pos, pawn.Size, target, pawn));
+
+            pos.y++;
+            pawn.GoTo(pos);
+        }
     }
 
 
