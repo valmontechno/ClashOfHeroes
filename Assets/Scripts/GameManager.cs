@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -8,6 +9,8 @@ public class GameManager : MonoBehaviour
     GridManager gridManager;
 
     public int ActivePlayer { get; private set; } = 0;
+
+    public int WaitingCount { get; set; } = 0;
 
     private void Awake()
     {
@@ -25,7 +28,7 @@ public class GameManager : MonoBehaviour
     {
         yield return null;
 
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(2);
 
         gridManager.CollapsePawns(GridTarget.Active);
         gridManager.CollapsePawns(GridTarget.Opponent);
