@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 using Grid = System.Collections.Generic.List<Pawn>;
@@ -13,24 +12,32 @@ public class GridManager : MonoBehaviour
     public static GridManager Instance {  get; private set; }
 
     private readonly Grid[] grids = {new(), new()};
+    [SerializeField] private Vector2Int pawnCount;
 
-    [SerializeField] Transform grid0Origin, grid1Origin;
+    [Space(10)]
+    [SerializeField] Transform grid0Origin;
+    [SerializeField] Transform grid1Origin;
 
     public static readonly Vector2Int gridSize = new(8, 6);
 
     [Space(10)]
     public float collapseSpeed;
+    public float dropSpeed;
 
     private void Awake()
     {
         Instance = this;
     }
 
+    private void Update()
+    {
+        pawnCount = new(grids[0].Count, grids[1].Count);
+    }
+
     /// <summary>
     /// Get the index of the <c>ActivePlayer</c> grid
     /// </summary>
     public int GetGridIndex(GridTarget target)
-    
     {
        return target == GridTarget.Active ? GameManager.Instance.ActivePlayer : 1 - GameManager.Instance.ActivePlayer;
     }
@@ -52,7 +59,7 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the pawn with this exact position
+    /// Get the firstPawn with this exact position
     /// </summary>
     public Pawn GetPawnExactly(Vector2Int position, GridTarget target)
     {
@@ -68,7 +75,7 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the pawn at this position
+    /// Get the firstPawn at this position
     /// </summary>
     public Pawn GetPawn(Vector2Int position, GridTarget target)
     {
@@ -87,7 +94,7 @@ public class GridManager : MonoBehaviour
     /// Check if space is free
     /// </summary>
     /// <param name="ignored">
-    /// Ignore this pawn (usually the one you are trying to find a place for)
+    /// Ignore this firstPawn (usually the one you are trying to find a place for)
     /// </param>
     /// <param name="edge">
     /// Tke into account the edges
@@ -103,6 +110,22 @@ public class GridManager : MonoBehaviour
             if (pawn.IsOverlapping(position, size)) return false;
         }
         return true;
+    }
+
+    public Pawn GetFirstPawnInCol(int col, GridTarget target)
+    {
+        Pawn firstPawn = null;
+        foreach (Pawn pawn in GetGrid(target))
+        {
+            if (pawn.Position.x <= col && col < pawn.Position.x + pawn.Size.x)
+            {
+                if (firstPawn == null || pawn.Position.y > firstPawn.Position.y)
+                {
+                    firstPawn = pawn;
+                }
+            }
+        }
+        return firstPawn;
     }
 
     /// <summary>
@@ -178,7 +201,7 @@ public class GridManager : MonoBehaviour
 
 
     /// <summary>
-    /// Instantiate a new pawn in the game and add it to the grid
+    /// Instantiate a new firstPawn in the game and add it to the grid
     /// </summary>
     public Pawn InstantiatePawn(GameObject gameObject, Vector2Int position, int grid)
     {
@@ -193,5 +216,13 @@ public class GridManager : MonoBehaviour
             Debug.LogError("GameObject is not a Pawn");
         }
         return pawn;
+    }
+
+    /// <summary>
+    /// Remove a firstPawn from the grid list
+    /// </summary>
+    public void RemovePawnFromGrid(Pawn pawn, int grid)
+    {
+        grids[grid].Remove(pawn);
     }
 }

@@ -131,3 +131,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   size: {x: 1, y: 1}
   collapsePriority: 3
+  selectedMaterial: {fileID: 2100000, guid: ace9b4dc6a84e1f4489bb937decacb86, type: 2}

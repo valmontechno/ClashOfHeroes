@@ -26,6 +26,7 @@ public class Pawn : MonoBehaviour
     private GridManager gridManager;
 
     private SpriteRenderer sprite;
+    [SerializeField] private Material selectedMaterial;
 
     private void OnDrawGizmos()
     {
@@ -115,6 +116,9 @@ public class Pawn : MonoBehaviour
     /// <summary>
     /// Set the pawn's target position
     /// </summary>
+    /// <param name="callback">
+    /// Function called at the end of the movement, if specifying <c>WaitingCount</c> did not deincrement
+    /// </param>
     public void MoveTo(Vector2Int position, float speed, Action callback = null)
     {
         this.position = position;
@@ -136,8 +140,14 @@ public class Pawn : MonoBehaviour
             if (Vector2.Distance(pos, movementTarget.Value) < 0.01f) {
                 transform.localPosition = movementTarget.Value;
                 movementTarget = null;
-                movementCallback?.Invoke();
-                gameManager.WaitingCount--;
+                if (movementCallback == null)
+                {
+                    gameManager.WaitingCount--;
+                }
+                else
+                {
+                    movementCallback.Invoke();
+                }
             }
             else
             {
@@ -162,8 +172,9 @@ public class Pawn : MonoBehaviour
     {
         if (position.y + size.y > GridManager.gridSize.y)
         {
-            Destroy(gameObject);
+            DestroyPawn();
         }
+        gameManager.WaitingCount--;
     }
 
     /// <summary>
@@ -172,5 +183,26 @@ public class Pawn : MonoBehaviour
     public void CalculateSortingOrder()
     {
         sprite.sortingOrder = -(position.x + position.y * GridManager.gridSize.x);
+    }
+
+    /// <summary>
+    /// Destroy the pawn and remove this from grid list
+    /// </summary>
+    public void DestroyPawn()
+    {
+        gameManager.WaitingCount++;
+        gridManager.RemovePawnFromGrid(this, grid);
+        Destroy(gameObject);
+        gameManager.WaitingCount--;
+    }
+
+    public void Select()
+    {
+        gameManager.WaitingCount++;
+        //Color color = sprite.color;
+        //color.a = 0.5f;
+        //sprite.color = color;
+        sprite.material = selectedMaterial;
+        gameManager.WaitingCount--;
     }
 }
