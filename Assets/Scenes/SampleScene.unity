@@ -243,7 +243,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3831a36838c07c4d9d6d250f1fef25a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pawnCount: {x: 0, y: 0}
   grid0Origin: {fileID: 525632366}
   grid1Origin: {fileID: 81343425}
   collapseSpeed: 4

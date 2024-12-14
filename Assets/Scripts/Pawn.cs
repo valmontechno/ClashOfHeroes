@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public enum PawnCollapsePriority
 {
@@ -9,7 +8,7 @@ public enum PawnCollapsePriority
 
 public class Pawn : MonoBehaviour
 {
-    private int grid;
+    private GridIndex grid;
     private Vector2Int position;
     [SerializeField] private Vector2Int size = Vector2Int.one;
     [SerializeField] private PawnCollapsePriority collapsePriority = PawnCollapsePriority.Default;
@@ -50,7 +49,7 @@ public class Pawn : MonoBehaviour
     /// <summary>
     /// Initialize the pawn after its instantiation
     /// </summary>
-    public void Init(int grid, Vector2Int position)
+    public void Init(GridIndex grid, Vector2Int position)
     {
         this.grid = grid;
         GoTo(position);
@@ -94,7 +93,7 @@ public class Pawn : MonoBehaviour
     /// </summary>
     private Vector3 GetTransformPos()
     {
-        if (grid == 0)
+        if (grid == GridIndex.Player0)
         {
             return new(position.x, -position.y);
         }

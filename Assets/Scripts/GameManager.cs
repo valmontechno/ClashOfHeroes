@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class WaitForAction : CustomYieldInstruction
@@ -15,7 +14,7 @@ public class GameManager : MonoBehaviour
     GridManager gridManager;
     PawnInteractManager pawnInteractManager;
 
-    public int ActivePlayer { get; private set; } = 0;
+    public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
 
     [SerializeField] private int waitingCount = 0;
     public int WaitingCount {
@@ -36,6 +35,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+
         gridManager = GridManager.Instance;
         pawnInteractManager = PawnInteractManager.Instance;
 
@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
     {
         yield return null;
 
-        gridManager.CollapsePawns(GridTarget.Active);
+        gridManager.CollapsePawns(Grid.Active);
 
         yield return new WaitForAction();
 
@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
     {
         pawn.DestroyPawn();
         yield return new WaitForAction();
-        gridManager.CollapsePawns(GridTarget.Active);
+        gridManager.CollapsePawns(Grid.Active);
         yield return new WaitForAction();
         callback?.Invoke();
     }

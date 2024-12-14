@@ -47,9 +47,9 @@ public class PawnInteractManager : MonoBehaviour
             {
                 if (gameManager.SelectedPawn == null)
                 {
-                    Pawn pawn = gridManager.GetPawn(position, GridTarget.Active);
+                    Pawn pawn = gridManager.GetPawn(position, Grid.Active);
                     if (pawn &&
-                        pawn == gridManager.GetFirstPawnInCol(position.x, GridTarget.Active))
+                        pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
                     {
                         interactEnabled = false;
                         StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
@@ -70,7 +70,7 @@ public class PawnInteractManager : MonoBehaviour
         {
             interactEnabled = false;
             clickDownPosition = new(-1, -1);
-            Pawn pawn = gridManager.GetPawn(position, GridTarget.Active);
+            Pawn pawn = gridManager.GetPawn(position, Grid.Active);
             if (pawn)
             {
                 StartCoroutine(gameManager.DestroyPawn(pawn, EnableInteraction));
@@ -87,7 +87,7 @@ public class PawnInteractManager : MonoBehaviour
     /// Get the grid box pointed to by the mouse
     /// </summary>
     /// <returns>
-    /// Is the position in the grid
+    /// Is the position inside the grid
     /// </returns>
     private bool GetGridMousePosition(out Vector2Int position)
     {

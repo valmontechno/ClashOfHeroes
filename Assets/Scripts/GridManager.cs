@@ -1,18 +1,21 @@
 using UnityEngine;
 
-using Grid = System.Collections.Generic.List<Pawn>;
-
-public enum GridTarget
+public enum GridIndex : int
 {
-    Active, Opponent
+    Player0 = 0, Player1 = 1
+}
+
+public class Grid : System.Collections.Generic.List<Pawn>
+{
+    public static Grid Active { get => GridManager.Instance.grids[(int)GameManager.Instance.ActivePlayer]; }
+    public static Grid Opponent { get => GridManager.Instance.grids[1 - (int)GameManager.Instance.ActivePlayer]; }
 }
 
 public class GridManager : MonoBehaviour
 {
     public static GridManager Instance {  get; private set; }
 
-    private readonly Grid[] grids = {new(), new()};
-    [SerializeField] private Vector2Int pawnCount;
+    public readonly Grid[] grids = { new(), new() };
 
     [Space(10)]
     [SerializeField] Transform grid0Origin;
@@ -29,27 +32,6 @@ public class GridManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Update()
-    {
-        pawnCount = new(grids[0].Count, grids[1].Count);
-    }
-
-    /// <summary>
-    /// Get the index of the <c>ActivePlayer</c> grid
-    /// </summary>
-    public int GetGridIndex(GridTarget target)
-    {
-       return target == GridTarget.Active ? GameManager.Instance.ActivePlayer : 1 - GameManager.Instance.ActivePlayer;
-    }
-
-    /// <summary>
-    /// Get the <c>ActivePlayer</c> grid
-    /// </summary>
-    public ref Grid GetGrid(GridTarget target)
-    {
-        return ref grids[GetGridIndex(target)];
-    }
-
     /// <summary>
     /// Sort the grid by collapse priority
     /// </summary>
@@ -59,11 +41,10 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the firstPawn with this exact position
+    /// Get the Pawn with this exact position
     /// </summary>
-    public Pawn GetPawnExactly(Vector2Int position, GridTarget target)
+    public Pawn GetPawnExactly(Vector2Int position, Grid grid)
     {
-        Grid grid = GetGrid(target);
         foreach (Pawn pawn in grid)
         {
             if (pawn.Position == position)
@@ -75,11 +56,10 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the firstPawn at this position
+    /// Get the Pawn at this position
     /// </summary>
-    public Pawn GetPawn(Vector2Int position, GridTarget target)
+    public Pawn GetPawn(Vector2Int position, Grid grid)
     {
-        Grid grid = GetGrid(target);
         foreach (Pawn pawn in grid)
         {
             if (pawn.IsMatch(position))
@@ -112,10 +92,13 @@ public class GridManager : MonoBehaviour
         return true;
     }
 
-    public Pawn GetFirstPawnInCol(int col, GridTarget target)
+    /// <summary>
+    /// Get the pawn with the highest y position in the column
+    /// </summary>
+    public Pawn GetFirstPawnInCol(int col, Grid grid)
     {
         Pawn firstPawn = null;
-        foreach (Pawn pawn in GetGrid(target))
+        foreach (Pawn pawn in grid)
         {
             if (pawn.Position.x <= col && col < pawn.Position.x + pawn.Size.x)
             {
@@ -181,9 +164,8 @@ public class GridManager : MonoBehaviour
     /// Move forward all pawns respecting their collapse priorities</c>
     /// </summary>
     /// <param name="target"></param>
-    public void CollapsePawns(GridTarget target)
+    public void CollapsePawns(Grid grid)
     {
-        Grid grid = GetGrid(target);
         SortGrid(grid);
 
         Grid newGrid = new();
@@ -203,12 +185,12 @@ public class GridManager : MonoBehaviour
     /// <summary>
     /// Instantiate a new firstPawn in the game and add it to the grid
     /// </summary>
-    public Pawn InstantiatePawn(GameObject gameObject, Vector2Int position, int grid)
+    public Pawn InstantiatePawn(GameObject gameObject, Vector2Int position, GridIndex grid)
     {
         gameObject = Instantiate(gameObject, grid == 0 ? grid0Origin : grid1Origin);
         if (gameObject.TryGetComponent<Pawn>(out var pawn))
         {
-            grids[grid].Add(pawn);
+            grids[(int)grid].Add(pawn);
             pawn.Init(grid, position);
         }
         else
@@ -221,8 +203,8 @@ public class GridManager : MonoBehaviour
     /// <summary>
     /// Remove a firstPawn from the grid list
     /// </summary>
-    public void RemovePawnFromGrid(Pawn pawn, int grid)
+    public void RemovePawnFromGrid(Pawn pawn, GridIndex grid)
     {
-        grids[grid].Remove(pawn);
+        grids[(int)grid].Remove(pawn);
     }
 }

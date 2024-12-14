@@ -13,7 +13,6 @@ public static class MathUtils
     /// <summary>
     /// Maps each component of a vector from one range to another
     /// </summary>
-    /// <returns></returns>
     public static Vector2 Map(Vector2 value, Vector2 fromMin, Vector2 fromMax, Vector2 toMin, Vector2 toMax)
     {
         return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;

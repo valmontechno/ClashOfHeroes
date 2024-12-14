@@ -6,7 +6,7 @@ public class PawnInitialState
 {
     public GameObject gameObject;
     public Vector2Int position;
-    [Range(0, 1)] public int grid;
+    public GridIndex grid;
 }
 
 public class PawnInitializer : MonoBehaviour
