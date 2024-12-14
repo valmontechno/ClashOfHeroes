@@ -33,34 +33,34 @@ public class PawnInteractManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            if(GetGridMousePosition(out clickDownPosition))
+            if (GetGridMousePosition(out clickDownPosition))
             {
                 holdClickCoroutine = StartCoroutine(HoldClick());
             }
         }
 
-        if (Input.GetMouseButtonUp(0))
-        {
-            if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
+        //if (Input.GetMouseButtonUp(0))
+        //{
+        //    if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
 
-            if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
-            {
-                if (gameManager.SelectedPawn == null)
-                {
-                    Pawn pawn = gridManager.GetPawn(position, Grid.Active);
-                    if (pawn &&
-                        pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
-                    {
-                        interactEnabled = false;
-                        StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
-                    }
-                }
-                else
-                {
+        //    if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
+        //    {
+        //        if (gameManager.SelectedPawn == null)
+        //        {
+        //            Pawn pawn = gridManager.GetPawn(position, Grid.Active);
+        //            if (pawn &&
+        //                pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
+        //            {
+        //                interactEnabled = false;
+        //                StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
+        //            }
+        //        }
+        //        else
+        //        {
 
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
     }
 
     private IEnumerator HoldClick()
@@ -73,8 +73,8 @@ public class PawnInteractManager : MonoBehaviour
             Pawn pawn = gridManager.GetPawn(position, Grid.Active);
             if (pawn)
             {
-                StartCoroutine(gameManager.DestroyPawn(pawn, EnableInteraction));
-            }
+                //pawn.DestroyPawn(EnableInteraction);
+            }  
         }
     }
 

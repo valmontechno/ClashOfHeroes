@@ -16,7 +16,9 @@ public class GameManager : MonoBehaviour
 
     public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
 
-    [SerializeField] private int waitingCount = 0;
+    public Action waitingCallback = null;
+
+    private int waitingCount = 0;
     public int WaitingCount {
         get => waitingCount;
         set {
@@ -33,42 +35,51 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Update()
+    {
+        if (waitingCallback != null && WaitingCount == 0)
+        {
+            Action callback = waitingCallback;
+            waitingCallback = null;
+            callback.Invoke();
+        }
+    }
+
     private void Start()
     {
-
         gridManager = GridManager.Instance;
         pawnInteractManager = PawnInteractManager.Instance;
 
-        StartCoroutine(Main());
+        StartCoroutine(GameFlow());
     }
 
-    private IEnumerator Main()
+    private IEnumerator GameFlow()
     {
         yield return null;
 
-        gridManager.CollapsePawns(Grid.Active);
+        yield return StartCoroutine(gridManager.CollapsePawns(Grid.Active));
 
-        yield return new WaitForAction();
+        print("Enable Interaction");
 
         SelectedPawn = null;
         pawnInteractManager.interactEnabled = true;
     }
 
-    public IEnumerator SelectPawn(Pawn pawn, Action callback = null)
-    {
-        SelectedPawn = pawn;
-        //pawn.MoveTo(new(pawn.Position.x, GridManager.gridSize.y), gridManager.dropSpeed);
-        pawn.Select();
-        yield return new WaitForAction();
-        callback?.Invoke();
-    }
+    //public IEnumerator SelectPawn(Pawn pawn, Action callback = null)
+    //{
+    //    SelectedPawn = pawn;
+    //    //pawn.MoveTo(new(pawn.Position.x, GridManager.gridSize.y), gridManager.dropSpeed);
+    //    pawn.Select();
+    //    yield return new WaitForAction();
+    //    callback?.Invoke();
+    //}
 
-    public IEnumerator DestroyPawn(Pawn pawn, Action callback = null)
-    {
-        pawn.DestroyPawn();
-        yield return new WaitForAction();
-        gridManager.CollapsePawns(Grid.Active);
-        yield return new WaitForAction();
-        callback?.Invoke();
-    }
+    //public IEnumerator DestroyPawn(Pawn pawn, Action callback = null)
+    //{
+    //    pawn.DestroyPawn();
+    //    yield return new WaitForAction();
+    //    gridManager.CollapsePawns(Grid.Active);
+    //    yield return new WaitForAction();
+    //    callback?.Invoke();
+    //}
 }

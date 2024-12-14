@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public enum PawnCollapsePriority
@@ -16,10 +17,6 @@ public class Pawn : MonoBehaviour
     public Vector2Int Position { get => position; }
     public Vector2Int Size { get => size; }
     public PawnCollapsePriority CollapsePriority { get => collapsePriority; }
-
-    private Vector2? movementTarget;
-    private float movementSpeed;
-    private Action movementCallback;
 
     private GameManager gameManager;
     private GridManager gridManager;
@@ -39,11 +36,6 @@ public class Pawn : MonoBehaviour
         gridManager = GridManager.Instance;
 
         sprite = GetComponentInChildren<SpriteRenderer>();
-    }
-
-    private void Update()
-    {
-        Move();
     }
 
     /// <summary>
@@ -113,65 +105,33 @@ public class Pawn : MonoBehaviour
     }
 
     /// <summary>
-    /// Set the pawn's target position
+    /// Progressively move the pawn to this position
     /// </summary>
-    /// <param name="callback">
-    /// Function called at the end of the movement, if specifying <c>WaitingCount</c> did not deincrement
-    /// </param>
-    public void MoveTo(Vector2Int position, float speed, Action callback = null)
+    public IEnumerator MoveTo(Vector2Int position, float speed)
     {
         this.position = position;
-        movementTarget = GetTransformPos();
-        movementSpeed = speed;
-        movementCallback = callback;
-        gameManager.WaitingCount++;
-    }
+        Vector2 targetPosition = GetTransformPos();
 
-
-    /// <summary>
-    /// On Update, move the pawn to its target position
-    /// </summary>
-    private void Move()
-    {
-        if (movementTarget.HasValue)
+        while (Vector2.Distance(transform.localPosition, targetPosition) > 0.01f)
         {
-            Vector2 pos = Vector2.MoveTowards(transform.localPosition, movementTarget.Value, movementSpeed * Time.deltaTime);
-            if (Vector2.Distance(pos, movementTarget.Value) < 0.01f) {
-                transform.localPosition = movementTarget.Value;
-                movementTarget = null;
-                if (movementCallback == null)
-                {
-                    gameManager.WaitingCount--;
-                }
-                else
-                {
-                    movementCallback.Invoke();
-                }
-            }
-            else
-            {
-                transform.localPosition = pos;
-            }
-
+            Vector2 pos = Vector2.MoveTowards(transform.localPosition, targetPosition, speed * Time.deltaTime);
+            transform.localPosition = pos;
+            yield return null;
         }
+        transform.localPosition = targetPosition;
     }
 
     /// <summary>
-    /// Set the pawn's position following a collapse
+    /// Move the pawn following a collapse and remove it if it leaves the grid [WaitingCount]
     /// </summary>
-    public void CollapseTo(Vector2Int position)
+    public IEnumerator CollapseTo(Vector2Int position)
     {
-        MoveTo(position, gridManager.collapseSpeed, CollapseCallback);
-    }
+        gameManager.WaitingCount++;
+        yield return StartCoroutine(MoveTo(position, gridManager.collapseSpeed));
 
-    /// <summary>
-    /// Pawn destruction animation after collapse
-    /// </summary>
-    public void CollapseCallback()
-    {
         if (position.y + size.y > GridManager.gridSize.y)
         {
-            DestroyPawn();
+            yield return StartCoroutine(DestroyPawn());
         }
         gameManager.WaitingCount--;
     }
@@ -187,12 +147,11 @@ public class Pawn : MonoBehaviour
     /// <summary>
     /// Destroy the pawn and remove this from grid list
     /// </summary>
-    public void DestroyPawn()
+    public IEnumerator DestroyPawn()
     {
-        gameManager.WaitingCount++;
         gridManager.RemovePawnFromGrid(this, grid);
         Destroy(gameObject);
-        gameManager.WaitingCount--;
+        yield return null;
     }
 
     public void Select()

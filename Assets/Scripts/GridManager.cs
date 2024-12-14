@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public enum GridIndex : int
@@ -163,8 +165,7 @@ public class GridManager : MonoBehaviour
     /// <summary>
     /// Move forward all pawns respecting their collapse priorities</c>
     /// </summary>
-    /// <param name="target"></param>
-    public void CollapsePawns(Grid grid)
+    public IEnumerator CollapsePawns(Grid grid)
     {
         SortGrid(grid);
 
@@ -174,11 +175,13 @@ public class GridManager : MonoBehaviour
         {
             if (pawn.CollapsePriority != PawnCollapsePriority.Static)
             {
-                pawn.CollapseTo(FindFirstFreeInCol(pawn.Position.x, pawn.Size, newGrid));
+                StartCoroutine(pawn.CollapseTo(FindFirstFreeInCol(pawn.Position.x, pawn.Size, newGrid)));
             }
             pawn.CalculateSortingOrder();
             newGrid.Add(pawn);
         }
+
+        yield return new WaitForAction();
     }
 
 

@@ -15,9 +15,9 @@ public class PawnInitializer : MonoBehaviour
 
     private void Start()
     {
-        foreach (PawnInitialState pawn in pawns)
+        foreach (PawnInitialState pawnState in pawns)
         {
-            GridManager.Instance.InstantiatePawn(pawn.gameObject, pawn.position, pawn.grid);
+            GridManager.Instance.InstantiatePawn(pawnState.gameObject, pawnState.position, pawnState.grid);
         }
     }
 
