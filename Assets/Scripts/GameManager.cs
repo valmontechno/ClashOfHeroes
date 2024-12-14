@@ -11,14 +11,14 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    GridManager gridManager;
-    PawnInteractManager pawnInteractManager;
+    private GridManager gridManager;
+    private PawnInteractManager pawnInteractManager;
 
     public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
 
     public Action waitingCallback = null;
 
-    private int waitingCount = 0;
+    [SerializeField] private int waitingCount = 0;
     public int WaitingCount {
         get => waitingCount;
         set {
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
         print("Enable Interaction");
 
         SelectedPawn = null;
-        pawnInteractManager.interactEnabled = true;
+        pawnInteractManager.BeginPlayerTurn();
     }
 
     //public IEnumerator SelectPawn(Pawn pawn, Action callback = null)

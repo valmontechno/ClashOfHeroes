@@ -131,7 +131,7 @@ public class Pawn : MonoBehaviour
 
         if (position.y + size.y > GridManager.gridSize.y)
         {
-            yield return StartCoroutine(DestroyPawn());
+            StartCoroutine(DestroyPawn(false));
         }
         gameManager.WaitingCount--;
     }
@@ -147,20 +147,24 @@ public class Pawn : MonoBehaviour
     /// <summary>
     /// Destroy the pawn and remove this from grid list
     /// </summary>
-    public IEnumerator DestroyPawn()
+    public IEnumerator DestroyPawn(bool playSound = true)
     {
+        if (playSound)
+        {
+            AudioManager.Instance.PlayDestroyPawnSound();
+        }
         gridManager.RemovePawnFromGrid(this, grid);
         Destroy(gameObject);
         yield return null;
     }
 
-    public void Select()
-    {
-        gameManager.WaitingCount++;
-        //Color color = sprite.color;
-        //color.a = 0.5f;
-        //sprite.color = color;
-        sprite.material = selectedMaterial;
-        gameManager.WaitingCount--;
-    }
+    //public void Select()
+    //{
+    //    gameManager.WaitingCount++;
+    //    //Color color = sprite.color;
+    //    //color.a = 0.5f;
+    //    //sprite.color = color;
+    //    sprite.material = selectedMaterial;
+    //    gameManager.WaitingCount--;
+    //}
 }

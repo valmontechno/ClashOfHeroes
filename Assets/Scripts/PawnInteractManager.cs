@@ -5,12 +5,14 @@ public class PawnInteractManager : MonoBehaviour
 {
     public static PawnInteractManager Instance { get; private set; }
 
-    GameManager gameManager;
-    GridManager gridManager;
+    private GameManager gameManager;
+    private GridManager gridManager;
+    private AudioManager audioManager;
 
     [SerializeField] private Transform minPoint, maxPoint;
 
-    public bool interactEnabled;
+    [SerializeField] private bool isPlayerTurn = false;
+    [SerializeField] private bool isListening = false;
 
     [SerializeField] private float holdClickDuration;
     private Coroutine holdClickCoroutine;
@@ -29,7 +31,7 @@ public class PawnInteractManager : MonoBehaviour
 
     private void Update()
     {
-        if (!interactEnabled) return;
+        if (!isPlayerTurn || !isListening) return;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -39,48 +41,54 @@ public class PawnInteractManager : MonoBehaviour
             }
         }
 
-        //if (Input.GetMouseButtonUp(0))
-        //{
-        //    if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
 
-        //    if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
-        //    {
-        //        if (gameManager.SelectedPawn == null)
-        //        {
-        //            Pawn pawn = gridManager.GetPawn(position, Grid.Active);
-        //            if (pawn &&
-        //                pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
-        //            {
-        //                interactEnabled = false;
-        //                StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
-        //            }
-        //        }
-        //        else
-        //        {
+            //if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
+            //{
+            //    if (gameManager.SelectedPawn == null)
+            //    {
+            //        Pawn pawn = gridManager.GetPawn(position, Grid.Active);
+            //        if (pawn &&
+            //            pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
+            //        {
+            //            isListening = false;
+            //            StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
+            //        }
+            //    }
+            //    else
+            //    {
 
-        //        }
-        //    }
-        //}
+            //    }
+            //}
+        }
     }
 
     private IEnumerator HoldClick()
     {
         yield return new WaitForSeconds(holdClickDuration);
-        if (interactEnabled && gameManager.SelectedPawn == null && GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
+        if (
+            isPlayerTurn && isListening &&
+            gameManager.SelectedPawn == null &&
+            GetGridMousePosition(out Vector2Int position) && position == clickDownPosition
+            )
         {
-            interactEnabled = false;
+            isListening = false;
             clickDownPosition = new(-1, -1);
-            Pawn pawn = gridManager.GetPawn(position, Grid.Active);
-            if (pawn)
+            if (gridManager.GetPawn(position, Grid.Active, out Pawn pawn))
             {
-                //pawn.DestroyPawn(EnableInteraction);
-            }  
+                yield return StartCoroutine(pawn.DestroyPawn());
+                yield return StartCoroutine(gridManager.CollapsePawns(Grid.Active));
+            }
+            isListening = true;
         }
     }
 
-    private void EnableInteraction()
+    public void BeginPlayerTurn()
     {
-        interactEnabled = true;
+        isPlayerTurn = true;
+        isListening = true;
     }
 
     /// <summary>

@@ -73,6 +73,26 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Get the Pawn at this position
+    /// </summary>
+    /// <returns>
+    /// 
+    /// </returns>
+    public bool GetPawn(Vector2Int position, Grid grid, out Pawn pawn)
+    {
+        foreach (Pawn p in grid)
+        {
+            if (p.IsMatch(position))
+            {
+                pawn = p;
+                return true;
+            }
+        }
+        pawn = null;
+        return false;
+    }
+
+    /// <summary>
     /// Check if space is free
     /// </summary>
     /// <param name="ignored">
@@ -81,7 +101,6 @@ public class GridManager : MonoBehaviour
     /// <param name="edge">
     /// Tke into account the edges
     /// </param>
-    /// <returns></returns>
     public bool IsFree(Vector2Int position, Vector2Int size, Grid grid, Pawn ignored = null, bool edge = true)
     {
         if (edge && (position.x < 0 || position.y < 0 || position.x + size.x > gridSize.x ||  position.y + size.y > gridSize.y))
