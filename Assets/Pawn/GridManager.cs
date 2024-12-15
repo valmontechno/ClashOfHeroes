@@ -29,6 +29,10 @@ public class GridManager : MonoBehaviour
     public float collapseSpeed;
     public float dropSpeed;
 
+    [Space(10)]
+    public Material defaultMaterial;
+    public Material selectedMaterial;
+
     private void Awake()
     {
         Instance = this;
@@ -76,7 +80,7 @@ public class GridManager : MonoBehaviour
     /// Get the Pawn at this position
     /// </summary>
     /// <returns>
-    /// 
+    /// Is the Pawn found
     /// </returns>
     public bool GetPawn(Vector2Int position, Grid grid, out Pawn pawn)
     {
@@ -114,7 +118,7 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the pawn with the highest y position in the column
+    /// Get the selectablePawn with the highest y position in the column
     /// </summary>
     public Pawn GetFirstPawnInCol(int col, Grid grid)
     {
@@ -132,19 +136,39 @@ public class GridManager : MonoBehaviour
         return firstPawn;
     }
 
+
+    /// <summary>
+    /// Check if the pawn at the position can be selected
+    /// </summary>
+    /// <param name="pawn">
+    /// If so, the selected pawn
+    /// </param>
+    public bool TryGetSelectedPawn(Vector2Int position, Grid grid, out Pawn pawn)
+    {
+        pawn = GetFirstPawnInCol(position.x, grid);
+
+        if (pawn == null || !pawn.IsMatch(position) || !IsFree(pawn.Position, new(pawn.Size.x, gridSize.y), grid, pawn, false))
+        {
+            pawn = null;
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Try to find the first free slot in a column
     /// </summary>
-    public bool TryFindFirstFreeInCol(int col, Vector2Int size, Grid grid, out Vector2Int position)
+    public bool TryFindFirstFreeInCol(int col, Vector2Int size, Grid grid, out Vector2Int position, Pawn ignored = null)
     {
         position = new(col, gridSize.y - size.y);
 
-        if (IsFree(position, size, grid))
+        if (IsFree(position, size, grid, ignored))
         {
             do
             {
                 position.y--;
-            } while (IsFree(position, size, grid));
+            } while (IsFree(position, size, grid, ignored));
             position.y++;
             return true;
         }
@@ -192,10 +216,7 @@ public class GridManager : MonoBehaviour
 
         foreach (Pawn pawn in grid)
         {
-            if (pawn.CollapsePriority != PawnCollapsePriority.Static)
-            {
-                StartCoroutine(pawn.CollapseTo(FindFirstFreeInCol(pawn.Position.x, pawn.Size, newGrid)));
-            }
+            StartCoroutine(pawn.CollapseTo(FindFirstFreeInCol(pawn.Position.x, pawn.Size, newGrid)));
             pawn.CalculateSortingOrder();
             newGrid.Add(pawn);
         }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum PawnCollapsePriority
 {
-    Wall = 1, Formation = 2, Default = 3, Static = 0
+    Wall = 0, Formation = 1, Default = 2
 }
 
 public class Pawn : MonoBehaviour
@@ -22,7 +22,6 @@ public class Pawn : MonoBehaviour
     private GridManager gridManager;
 
     private SpriteRenderer sprite;
-    [SerializeField] private Material selectedMaterial;
 
     private void OnDrawGizmos()
     {
@@ -131,7 +130,7 @@ public class Pawn : MonoBehaviour
 
         if (position.y + size.y > GridManager.gridSize.y)
         {
-            StartCoroutine(DestroyPawn(false));
+            StartCoroutine(DestroyPawn());
         }
         gameManager.WaitingCount--;
     }
@@ -147,24 +146,20 @@ public class Pawn : MonoBehaviour
     /// <summary>
     /// Destroy the pawn and remove this from grid list
     /// </summary>
-    public IEnumerator DestroyPawn(bool playSound = true)
+    public IEnumerator DestroyPawn()
     {
-        if (playSound)
-        {
-            AudioManager.Instance.PlayDestroyPawnSound();
-        }
         gridManager.RemovePawnFromGrid(this, grid);
         Destroy(gameObject);
         yield return null;
     }
 
-    //public void Select()
-    //{
-    //    gameManager.WaitingCount++;
-    //    //Color color = sprite.color;
-    //    //color.a = 0.5f;
-    //    //sprite.color = color;
-    //    sprite.material = selectedMaterial;
-    //    gameManager.WaitingCount--;
-    //}
+    public void Select()
+    {
+        sprite.material = gridManager.selectedMaterial;
+    }
+
+    public void Deselect()
+    {
+        sprite.material = gridManager.defaultMaterial;
+    }
 }

@@ -7,11 +7,11 @@ public class AudioManager : MonoBehaviour
 
     private AudioSource audioSource;
 
-    [SerializeField] private AudioClip destroyPawnSound;
-    [SerializeField] private AudioClip movePawnSound;
+    public AudioClip selectPawnSound;
+    public AudioClip deselectPawnSound;
 
-    public void PlayDestroyPawnSound() => PlaySound(destroyPawnSound);
-    public void PlayMovePawnSound() => PlaySound(movePawnSound);
+    public AudioClip destroyPawnSound;
+    public AudioClip dropPawnSound;
 
     private void Awake()
     {
@@ -28,7 +28,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public void PlaySound(AudioClip clip, float volume = 1.0f)
+    public void Play(AudioClip clip, float volume = 1.0f)
     {
         Instance.audioSource.PlayOneShot(clip, volume);
     }
