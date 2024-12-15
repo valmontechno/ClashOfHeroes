@@ -29,6 +29,10 @@ public class GridManager : MonoBehaviour
     public float collapseSpeed;
     public float dropSpeed;
 
+    [Space(10)]
+    public Material defaultMaterial;
+    public Material selectedMaterial;
+
     private void Awake()
     {
         Instance = this;
@@ -76,7 +80,7 @@ public class GridManager : MonoBehaviour
     /// Get the Pawn at this position
     /// </summary>
     /// <returns>
-    /// 
+    /// Is the Pawn found
     /// </returns>
     public bool GetPawn(Vector2Int position, Grid grid, out Pawn pawn)
     {
@@ -114,7 +118,7 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get the pawn with the highest y position in the column
+    /// Get the selectablePawn with the highest y position in the column
     /// </summary>
     public Pawn GetFirstPawnInCol(int col, Grid grid)
     {
@@ -130,6 +134,26 @@ public class GridManager : MonoBehaviour
             }
         }
         return firstPawn;
+    }
+
+
+    /// <summary>
+    /// Check if the pawn at the position can be selected
+    /// </summary>
+    /// <param name="pawn">
+    /// If so, the selected pawn
+    /// </param>
+    public bool TryGetSelectedPawn(Vector2Int position, Grid grid, out Pawn pawn)
+    {
+        pawn = GetFirstPawnInCol(position.x, grid);
+
+        if (pawn == null || !pawn.IsMatch(position) || !IsFree(pawn.Position, new(pawn.Size.x, gridSize.y), grid, pawn, false))
+        {
+            pawn = null;
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>

@@ -7,7 +7,6 @@ public class PawnInteractManager : MonoBehaviour
 
     private GameManager gameManager;
     private GridManager gridManager;
-    private AudioManager audioManager;
 
     [SerializeField] private Transform minPoint, maxPoint;
 
@@ -45,23 +44,24 @@ public class PawnInteractManager : MonoBehaviour
         {
             if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
 
-            //if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
-            //{
-            //    if (gameManager.SelectedPawn == null)
-            //    {
-            //        Pawn pawn = gridManager.GetPawn(position, Grid.Active);
-            //        if (pawn &&
-            //            pawn == gridManager.GetFirstPawnInCol(position.x, Grid.Active))
-            //        {
-            //            isListening = false;
-            //            StartCoroutine(gameManager.SelectPawn(pawn, EnableInteraction));
-            //        }
-            //    }
-            //    else
-            //    {
-
-            //    }
-            //}
+            if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
+            {
+                if (gameManager.SelectedPawn == null)
+                {
+                    if (gridManager.TryGetSelectedPawn(position, Grid.Active, out Pawn pawn))
+                    {
+                        isListening = false;
+                        StartCoroutine(gameManager.SelectPawn(pawn));
+                        isListening = true;
+                    }
+                }
+                else
+                {
+                    isListening = false;
+                    StartCoroutine(gameManager.DeselectPawn());
+                    isListening = true;
+                }
+            }
         }
     }
 
@@ -78,8 +78,7 @@ public class PawnInteractManager : MonoBehaviour
             clickDownPosition = new(-1, -1);
             if (gridManager.GetPawn(position, Grid.Active, out Pawn pawn))
             {
-                yield return StartCoroutine(pawn.DestroyPawn());
-                yield return StartCoroutine(gridManager.CollapsePawns(Grid.Active));
+                yield return StartCoroutine(gameManager.DestroyPawn(pawn));
             }
             isListening = true;
         }

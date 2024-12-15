@@ -226,7 +226,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 187a2d99ca23d034aa7e95d3962ebbff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  destroyPawnSound: {fileID: 8300000, guid: d44de82efee6a7f42b513ccc9e4cea94, type: 3}
+  selectPawnSound: {fileID: 8300000, guid: 76e67054eec643043b09622a2cc5146d, type: 3}
+  deselectPawnSound: {fileID: 8300000, guid: 4a19c52bb71f33344b4c5cdb1030678c, type: 3}
+  destroyPawnSound: {fileID: 8300000, guid: b15515c47a4eae34a93fc23ebf4374bb, type: 3}
   movePawnSound: {fileID: 8300000, guid: 4dd135bff12db2648a5a3dcbde7e666f, type: 3}
 --- !u!82 &89057728
 AudioSource:
@@ -390,6 +392,8 @@ MonoBehaviour:
   grid1Origin: {fileID: 81343425}
   collapseSpeed: 4
   dropSpeed: 50
+  defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  selectedMaterial: {fileID: 2100000, guid: ace9b4dc6a84e1f4489bb937decacb86, type: 2}
 --- !u!114 &207421761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -408,12 +412,12 @@ MonoBehaviour:
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: 8edf1fd255d0fbd42aa0a66da4f8fabc, type: 3}
     position: {x: 4, y: 2}
-    grid: 0
+    grid: 1
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
     position: {x: 3, y: 2}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
-    position: {x: 3, y: 3}
+    position: {x: 4, y: 3}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: 62c5d1ccc36610b44974fe7c827d73e9, type: 3}
     position: {x: 0, y: 1}

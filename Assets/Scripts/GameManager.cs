@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class WaitForAction : CustomYieldInstruction
@@ -13,6 +14,7 @@ public class GameManager : MonoBehaviour
 
     private GridManager gridManager;
     private PawnInteractManager pawnInteractManager;
+    private AudioManager audioManager;
 
     public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
 
@@ -49,6 +51,7 @@ public class GameManager : MonoBehaviour
     {
         gridManager = GridManager.Instance;
         pawnInteractManager = PawnInteractManager.Instance;
+        audioManager = AudioManager.Instance;
 
         StartCoroutine(GameFlow());
     }
@@ -65,21 +68,30 @@ public class GameManager : MonoBehaviour
         pawnInteractManager.BeginPlayerTurn();
     }
 
-    //public IEnumerator SelectPawn(Pawn pawn, Action callback = null)
-    //{
-    //    SelectedPawn = pawn;
-    //    //pawn.MoveTo(new(pawn.Position.x, GridManager.gridSize.y), gridManager.dropSpeed);
-    //    pawn.Select();
-    //    yield return new WaitForAction();
-    //    callback?.Invoke();
-    //}
+    public IEnumerator SelectPawn(Pawn pawn)
+    {
+        audioManager.Play(audioManager.selectPawnSound);
+        if (SelectedPawn)
+        {
+            SelectedPawn.Deselect();
+        }
+        SelectedPawn = pawn;
+        pawn.Select();
+        yield return null;
+    }
 
-    //public IEnumerator DestroyPawn(Pawn pawn, Action callback = null)
-    //{
-    //    pawn.DestroyPawn();
-    //    yield return new WaitForAction();
-    //    gridManager.CollapsePawns(Grid.Active);
-    //    yield return new WaitForAction();
-    //    callback?.Invoke();
-    //}
+    public IEnumerator DeselectPawn()
+    {
+        audioManager.Play(audioManager.deselectPawnSound);
+        SelectedPawn.Deselect();
+        SelectedPawn = null;
+        yield return null;
+    }
+
+    public IEnumerator DestroyPawn(Pawn pawn)
+    {
+        audioManager.Play(audioManager.destroyPawnSound);
+        yield return StartCoroutine(pawn.DestroyPawn());
+        yield return StartCoroutine(gridManager.CollapsePawns(Grid.Active));
+    }
 }
