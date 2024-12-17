@@ -34,7 +34,7 @@ public class PawnInteractManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (GetGridMousePosition(out clickDownPosition))
+            if (GetMouseGridPosition(GetMouseWorldPosition(), out clickDownPosition))
             {
                 holdClickCoroutine = StartCoroutine(HoldClick());
             }
@@ -44,7 +44,9 @@ public class PawnInteractManager : MonoBehaviour
         {
             if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
 
-            if (GetGridMousePosition(out Vector2Int position) && position == clickDownPosition)
+            Vector2 mousePosition = GetMouseWorldPosition();
+
+            if (GetMouseGridPosition(mousePosition, out Vector2Int position) && position == clickDownPosition)
             {
                 Pawn SelectedPawn = gameManager.SelectedPawn;
                 if (SelectedPawn == null)
@@ -58,6 +60,7 @@ public class PawnInteractManager : MonoBehaviour
                 }
                 else
                 {
+                    position = GetGridMousePositionWithOffset(mousePosition, SelectedPawn.Size.x);
                     if (position.x == SelectedPawn.Position.x)
                     {
                         isListening = false;
@@ -81,7 +84,7 @@ public class PawnInteractManager : MonoBehaviour
         if (
             isPlayerTurn && isListening &&
             gameManager.SelectedPawn == null &&
-            GetGridMousePosition(out Vector2Int position) && position == clickDownPosition
+            GetMouseGridPosition(GetMouseWorldPosition(), out Vector2Int position) && position == clickDownPosition
             )
         {
             isListening = false;
@@ -100,16 +103,31 @@ public class PawnInteractManager : MonoBehaviour
         isListening = true;
     }
 
+    private Vector2 GetMouseWorldPosition()
+    {
+        return Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    }
+
     /// <summary>
-    /// Get the grid box pointed to by the mouse
+    /// Get the grid square pointed to by the mouse
     /// </summary>
     /// <returns>
     /// Is the position inside the grid
     /// </returns>
-    private bool GetGridMousePosition(out Vector2Int position)
+    private bool GetMouseGridPosition(Vector2 mousePosition, out Vector2Int position)
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         position = Vector2Int.FloorToInt(MathUtils.Map(mousePosition, minPoint.position, maxPoint.position, Vector2.zero, GridManager.gridSize));
         return 0 <= position.x && position.x < GridManager.gridSize.x && 0 <= position.y && position.y < GridManager.gridSize.y;
+    }
+
+
+    /// <summary>
+    /// Get the grid square pointed to by the mouse taking into account the offset due to the width of the selected pawn
+    /// </summary>
+    private Vector2Int GetGridMousePositionWithOffset(Vector2 mousePosition, int width)
+    {
+        float offset = -(width - 1) / 2f;
+        mousePosition.x += offset;
+        return Vector2Int.FloorToInt(MathUtils.Map(mousePosition, minPoint.position, maxPoint.position, Vector2.zero, GridManager.gridSize));
     }
 }
