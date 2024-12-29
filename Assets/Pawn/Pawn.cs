@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum PawnCollapsePriority
@@ -14,14 +15,18 @@ public class Pawn : MonoBehaviour
     [SerializeField] private Vector2Int size = Vector2Int.one;
     [SerializeField] private PawnCollapsePriority collapsePriority = PawnCollapsePriority.Default;
 
+    public GridIndex Grid { get => grid; }
     public Vector2Int Position { get => position; }
     public Vector2Int Size { get => size; }
     public PawnCollapsePriority CollapsePriority { get => collapsePriority; }
 
-    private GameManager gameManager;
-    private GridManager gridManager;
+    protected GameManager gameManager;
+    protected GridManager gridManager;
 
     private SpriteRenderer sprite;
+
+    private int mergeTo = GridManager.gridSize.y;
+    private readonly List<Action> mergeCallbacks = new();
 
     private void OnDrawGizmos()
     {
@@ -35,19 +40,27 @@ public class Pawn : MonoBehaviour
         gridManager = GridManager.Instance;
 
         sprite = GetComponentInChildren<SpriteRenderer>();
+
+        gameManager.WaitingCount--;
     }
 
     /// <summary>
-    /// Initialize the pawn after its instantiation
+    /// Initialize the other after its instantiation [WaitingCount]
     /// </summary>
     public void Init(GridIndex grid, Vector2Int position)
     {
+        GameManager.Instance.WaitingCount++;
         this.grid = grid;
         GoTo(position);
     }
 
+    private void Update()
+    {
+        MergeUpdate();
+    }
+
     /// <summary>
-    /// Check if the pawn overlaps this position
+    /// Check if the other overlaps this position
     /// </summary>
     public bool IsMatch(Vector2Int position)
     {
@@ -56,7 +69,7 @@ public class Pawn : MonoBehaviour
     }
 
     /// <summary>
-    /// Check if the pawn overlaps this rectangle
+    /// Check if the other overlaps this rectangle
     /// </summary>
     public bool IsOverlapping(Vector2Int position, Vector2Int size)
     {
@@ -104,7 +117,7 @@ public class Pawn : MonoBehaviour
     }
 
     /// <summary>
-    /// Progressively move the pawn to this position
+    /// Progressively move the other to this position
     /// </summary>
     public IEnumerator MoveTo(Vector2Int position, float speed)
     {
@@ -121,15 +134,22 @@ public class Pawn : MonoBehaviour
     }
 
     /// <summary>
-    /// Move the pawn following a collapse and remove it if it leaves the grid [WaitingCount]
+    /// Move the other following a collapse and remove it if it leaves the grid [WaitingCount]
     /// </summary>
     public IEnumerator CollapseTo(Vector2Int position)
     {
         gameManager.WaitingCount++;
+
+        if (!gridManager.hasCollapseEffect && this.position != position)
+        {
+            gridManager.hasCollapseEffect = true;
+        }
+
         yield return StartCoroutine(MoveTo(position, gridManager.collapseSpeed));
 
         if (position.y + size.y > GridManager.gridSize.y)
         {
+            print("Collapsed and destroyed out of the grid");
             StartCoroutine(DestroyPawn());
         }
         gameManager.WaitingCount--;
@@ -144,7 +164,7 @@ public class Pawn : MonoBehaviour
     }
 
     /// <summary>
-    /// Destroy the pawn and remove this from grid list
+    /// Destroy the other and remove this from grid list
     /// </summary>
     public IEnumerator DestroyPawn()
     {
@@ -153,13 +173,68 @@ public class Pawn : MonoBehaviour
         yield return null;
     }
 
+    /// <summary>
+    /// Apply select effect
+    /// </summary>
     public void Select()
     {
         sprite.material = gridManager.selectedMaterial;
     }
 
+    /// <summary>
+    /// Apply deselect effect
+    /// </summary>
     public void Deselect()
     {
         sprite.material = gridManager.defaultMaterial;
+    }
+
+    /// <summary>
+    /// Move the pawn up to merge it [WaitingCount]
+    /// </summary>
+    public void Merge(int moveUp, Action callback = null)
+    {
+        int posY = position.y - moveUp;
+        if (posY < mergeTo)
+        {
+            if (mergeTo >= GridManager.gridSize.y)
+            {
+                gameManager.WaitingCount++;
+            }
+            mergeTo = posY;
+            position.y = posY;
+            if (callback != null)
+            {
+                mergeCallbacks.Add(callback);
+            }
+        }
+    }
+
+    private void MergeUpdate()
+    {
+        if (mergeTo < GridManager.gridSize.y)
+        {
+            Vector2 targetPosition = GetTransformPos();
+
+            if (Vector2.Distance(transform.localPosition, targetPosition) > 0.01f)
+            {
+                Vector2 pos = Vector2.MoveTowards(transform.localPosition, targetPosition, gridManager.mergeSpeed * Time.deltaTime);
+                transform.localPosition = pos;
+            }
+            else
+            {
+                gridManager.RemovePawnFromGrid(this, grid);
+                Destroy(gameObject);
+
+                foreach (Action callback in mergeCallbacks)
+                {
+                    callback.Invoke();
+                }
+                mergeCallbacks.Clear();
+
+                mergeTo = GridManager.gridSize.y;
+                gameManager.WaitingCount--;
+            }
+        }
     }
 }

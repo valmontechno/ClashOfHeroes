@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PawnInteractManager : MonoBehaviour
@@ -15,7 +16,12 @@ public class PawnInteractManager : MonoBehaviour
 
     [SerializeField] private float holdClickDuration;
     private Coroutine holdClickCoroutine;
+
     private Vector2Int clickDownPosition;
+    private Vector2 clickDownWorldPosition;
+
+    [SerializeField] float mouseDragXMax;
+    [SerializeField] float mouseDragYMin;
 
     private void Awake()
     {
@@ -30,6 +36,7 @@ public class PawnInteractManager : MonoBehaviour
 
     private void Update()
     {
+        /*
         if (!isPlayerTurn || !isListening) return;
 
         if (Input.GetMouseButtonDown(0))
@@ -51,11 +58,12 @@ public class PawnInteractManager : MonoBehaviour
                 Pawn SelectedPawn = gameManager.SelectedPawn;
                 if (SelectedPawn == null)
                 {
-                    if (gridManager.TryGetSelectedPawn(position, Grid.Active, out Pawn pawn))
+                    if (gridManager.TryGetSelectedPawn(position, Grid.Active, out Pawn pawn) && pawn is Unit)
                     {
                         isListening = false;
-                        StartCoroutine(gameManager.SelectPawn(pawn));
-                        isListening = true;
+                        StartCoroutine(gameManager.SelectPawn(pawn,
+                            () => isListening = true
+                        ));
                     }
                 }
                 else
@@ -64,14 +72,100 @@ public class PawnInteractManager : MonoBehaviour
                     if (position.x == SelectedPawn.Position.x)
                     {
                         isListening = false;
-                        StartCoroutine(gameManager.DeselectPawn());
-                        isListening = true;
+                        StartCoroutine(gameManager.DeselectPawn(
+                            () => isListening = true
+                        ));
                     }
                     else if (gridManager.TryFindFirstFreeInCol(position.x, SelectedPawn.Size, Grid.Active, out position, SelectedPawn))
                     {
                         isListening = false;
-                        StartCoroutine(gameManager.DropPawn(position));
-                        isListening = true;
+                        StartCoroutine(gameManager.DropPawn(position,
+                            () => isListening = true
+                        ));
+                    }
+                }
+            }
+        }
+        */
+
+        if (!isPlayerTurn || !isListening) return;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Pawn SelectedPawn = gameManager.SelectedPawn;
+            if (GetMousePosition(SelectedPawn == null ? 1 : SelectedPawn.Size.x, out clickDownPosition, out clickDownWorldPosition))
+            {
+                holdClickCoroutine = StartCoroutine(HoldClick());
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (holdClickCoroutine != null) StopCoroutine(holdClickCoroutine);
+
+            Pawn SelectedPawn = gameManager.SelectedPawn;
+
+            bool isInGrid = GetMousePosition(SelectedPawn == null ? 1 : SelectedPawn.Size.x, out Vector2Int position, out Vector2 worldPosition);
+
+            bool dragXOk = Mathf.Abs(clickDownWorldPosition.x - worldPosition.x) <= mouseDragXMax;
+
+            Pawn pawn;
+
+            if (SelectedPawn == null)
+            {
+                // Select
+                if (
+                    (
+                    // by drag
+                    dragXOk &&
+                    clickDownWorldPosition.y - worldPosition.y >= mouseDragYMin &&
+                    gridManager.CheckInGrid(clickDownPosition) &&
+                    gridManager.TrySelectFirstPawn(clickDownPosition.x, Grid.Active, out pawn)
+                    ) || (
+                    // by click
+                    isInGrid &&
+                    position == clickDownPosition &&
+                    gridManager.TryGetSelectedPawn(position, Grid.Active, out pawn) && pawn is Unit
+                    )
+                )
+                {
+                    isListening = false;
+                    StartCoroutine(gameManager.SelectPawn(pawn,
+                        () => isListening = true
+                    ));
+                }
+            }
+            else
+            {
+                // Drop or deselect
+                if (
+                    (
+                    // by drag
+                    dragXOk &&
+                    worldPosition.y - clickDownWorldPosition.y>= mouseDragYMin &&
+                    gridManager.CheckInGrid(clickDownPosition)
+                    ) || (
+                    // by click
+                    isInGrid &&
+                    position == clickDownPosition
+                    )
+                )
+                {
+                    if (position.x == SelectedPawn.Position.x)
+                    {
+                        // Deselect
+                        isListening = false;
+                        StartCoroutine(gameManager.DeselectPawn(
+                            () => isListening = true
+                        ));
+                    }
+                    else if (gridManager.TryFindFirstFreeInCol(position.x, SelectedPawn.Size, Grid.Active, out position, SelectedPawn))
+                    {
+                        // Drop
+                        isListening = false;
+                        StartCoroutine(gameManager.DropPawn(position,
+                            () => isListening = true
+                        )); // !!! large units !!!
                     }
                 }
             }
@@ -89,7 +183,7 @@ public class PawnInteractManager : MonoBehaviour
         {
             isListening = false;
             clickDownPosition = new(-1, -1);
-            if (gridManager.GetPawn(position, Grid.Active, out Pawn pawn))
+            if (gridManager.GetPawn(position, Grid.Active, out Pawn pawn) && (pawn is Unit || pawn is Wall))
             {
                 yield return StartCoroutine(gameManager.DestroyPawn(pawn));
             }
@@ -108,6 +202,17 @@ public class PawnInteractManager : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(Input.mousePosition);
     }
 
+    private bool GetMousePosition(int width, out Vector2Int position, out Vector2 worldPosition)
+    {
+        worldPosition = GetMouseWorldPosition();
+        float offset = -(width - 1) / 2f;
+
+        position = Vector2Int.FloorToInt(MathUtils.Map(worldPosition + Vector2.right * offset, minPoint.position, maxPoint.position, Vector2.zero, GridManager.gridSize));
+        position.x = Mathf.Clamp(position.x, 0, GridManager.gridSize.x - width);
+
+        return gridManager.CheckInGrid(position);
+    }
+
     /// <summary>
     /// Get the grid square pointed to by the mouse
     /// </summary>
@@ -122,12 +227,14 @@ public class PawnInteractManager : MonoBehaviour
 
 
     /// <summary>
-    /// Get the grid square pointed to by the mouse taking into account the offset due to the width of the selected pawn
+    /// Get the grid square pointed to by the mouse taking into account the offset due to the width of the selected unit
     /// </summary>
     private Vector2Int GetGridMousePositionWithOffset(Vector2 mousePosition, int width)
     {
         float offset = -(width - 1) / 2f;
         mousePosition.x += offset;
-        return Vector2Int.FloorToInt(MathUtils.Map(mousePosition, minPoint.position, maxPoint.position, Vector2.zero, GridManager.gridSize));
+        Vector2Int position = Vector2Int.FloorToInt(MathUtils.Map(mousePosition, minPoint.position, maxPoint.position, Vector2.zero, GridManager.gridSize));
+        position.x = Mathf.Clamp(position.x, 0, GridManager.gridSize.x - width);
+        return position;
     }
 }

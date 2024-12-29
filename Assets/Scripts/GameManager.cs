@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
+
+/// <summary>
+/// Wait until all actions are completed [WaitingCount]
+/// </summary>
 public class WaitForAction : CustomYieldInstruction
 {
     public override bool keepWaiting => GameManager.Instance.WaitingCount > 0;
@@ -17,8 +20,6 @@ public class GameManager : MonoBehaviour
     private AudioManager audioManager;
 
     public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
-
-    public Action waitingCallback = null;
 
     [SerializeField] private int waitingCount = 0;
     public int WaitingCount {
@@ -35,16 +36,6 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-    }
-
-    private void Update()
-    {
-        if (waitingCallback != null && WaitingCount == 0)
-        {
-            Action callback = waitingCallback;
-            waitingCallback = null;
-            callback.Invoke();
-        }
     }
 
     private void Start()
@@ -66,7 +57,7 @@ public class GameManager : MonoBehaviour
         pawnInteractManager.BeginPlayerTurn();
     }
 
-    public IEnumerator SelectPawn(Pawn pawn)
+    public IEnumerator SelectPawn(Pawn pawn, Action callback = null)
     {
         audioManager.Play(audioManager.selectPawnSound);
         if (SelectedPawn)
@@ -76,29 +67,36 @@ public class GameManager : MonoBehaviour
         SelectedPawn = pawn;
         pawn.Select();
         yield return null;
+        callback?.Invoke();
     }
 
-    public IEnumerator DeselectPawn()
+    public IEnumerator DeselectPawn(Action callback = null)
     {
         audioManager.Play(audioManager.deselectPawnSound);
         SelectedPawn.Deselect();
         SelectedPawn = null;
         yield return null;
+        callback?.Invoke();
     }
 
     public IEnumerator DestroyPawn(Pawn pawn)
     {
         audioManager.Play(audioManager.destroyPawnSound);
         yield return StartCoroutine(pawn.DestroyPawn());
-        yield return StartCoroutine(gridManager.CollapsePawns(Grid.Active));
+        yield return StartCoroutine(gridManager.ProcessPawns(Grid.Active));
     }
 
-    public IEnumerator DropPawn(Vector2Int position)
+    public IEnumerator DropPawn(Vector2Int position, Action callback = null)
     {
         audioManager.Play(audioManager.dropPawnSound);
         SelectedPawn.Deselect();
+
         SelectedPawn.GoTo(new(position.x, GridManager.gridSize.y));
         yield return StartCoroutine(SelectedPawn.MoveTo(position, gridManager.dropSpeed));
         SelectedPawn = null;
+
+        yield return StartCoroutine(gridManager.ProcessPawns(Grid.Active));
+
+        callback?.Invoke();
     }
 }

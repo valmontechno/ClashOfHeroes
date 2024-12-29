@@ -1,6 +1,6 @@
-using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum GridIndex : int
 {
@@ -28,10 +28,13 @@ public class GridManager : MonoBehaviour
     [Space(10)]
     public float collapseSpeed;
     public float dropSpeed;
+    public float mergeSpeed;
 
     [Space(10)]
     public Material defaultMaterial;
     public Material selectedMaterial;
+
+    [HideInInspector] public bool hasCollapseEffect;
 
     private void Awake()
     {
@@ -97,6 +100,14 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Checks if the position is located inside the grid
+    /// </summary>
+    public bool CheckInGrid(Vector2Int position)
+    {
+        return 0 <= position.x && position.x < gridSize.x && 0 <= position.y && position.y < gridSize.y;
+    }
+
+    /// <summary>
     /// Check if space is free
     /// </summary>
     /// <param name="ignored">
@@ -138,16 +149,29 @@ public class GridManager : MonoBehaviour
 
 
     /// <summary>
-    /// Check if the pawn at the position can be selected
+    /// Check if the unit at the position can be selected
     /// </summary>
     /// <param name="pawn">
-    /// If so, the selected pawn
+    /// If so, the selected unit
     /// </param>
     public bool TryGetSelectedPawn(Vector2Int position, Grid grid, out Pawn pawn)
     {
         pawn = GetFirstPawnInCol(position.x, grid);
 
         if (pawn == null || !pawn.IsMatch(position) || !IsFree(pawn.Position, new(pawn.Size.x, gridSize.y), grid, pawn, false))
+        {
+            pawn = null;
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool TrySelectFirstPawn(int col, Grid grid, out Pawn pawn)
+    {
+        pawn = GetFirstPawnInCol(col, grid);
+
+        if (pawn == null || !IsFree(pawn.Position, new(pawn.Size.x, gridSize.y), grid, pawn, false))
         {
             pawn = null;
             return false;
@@ -205,6 +229,16 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    public IEnumerator ProcessPawns(Grid grid)
+    {
+        hasCollapseEffect = false;
+        do
+        {
+            yield return StartCoroutine(MergeManager.Instance.MergeUnits(Grid.Active));
+            yield return StartCoroutine(CollapsePawns(grid));
+        } while (hasCollapseEffect);
+    }
+
     /// <summary>
     /// Move forward all pawns respecting their collapse priorities</c>
     /// </summary>
@@ -213,6 +247,8 @@ public class GridManager : MonoBehaviour
         SortGrid(grid);
 
         Grid newGrid = new();
+
+        hasCollapseEffect = false;
 
         foreach (Pawn pawn in grid)
         {
@@ -224,9 +260,55 @@ public class GridManager : MonoBehaviour
         yield return new WaitForAction();
     }
 
+    /// <summary>
+    /// Create a temporary representation of the game grid as a TempPawn table
+    /// </summary>
+    public TempPawn[,] CreateGridTable(Grid grid)
+    {
+        TempPawn[,] table = new TempPawn[gridSize.x, gridSize.y];
+
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                table[x, y] = null;
+            }
+        }
+
+        foreach (Pawn pawn in grid)
+        {
+            TempPawn tempPawn = new(pawn);
+
+            for (int x = 0; x < pawn.Size.x; x++)
+            {
+                for(int y = 0; y < pawn.Size.y; y++)
+                {
+                    table[pawn.Position.x + x,pawn.Position.y + y] = tempPawn;
+                }
+            }
+        }
+
+        return table;
+    }
 
     /// <summary>
-    /// Instantiate a new firstPawn in the game and add it to the grid
+    /// Get the TempPawn at the position in the table, null if out of bounds
+    /// </summary>
+    public TempPawn GetTempPawn(TempPawn[,] table, int x, int y)
+    {
+        if (0 <= x && x < gridSize.x && 0 <= y && y < gridSize.y)
+        {
+            return table[x, y];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    /// <summary>
+    /// Instantiate a new pawn in the game and add it to the grid
     /// </summary>
     public Pawn InstantiatePawn(GameObject gameObject, Vector2Int position, GridIndex grid)
     {

@@ -352,6 +352,7 @@ GameObject:
   - component: {fileID: 207421759}
   - component: {fileID: 207421762}
   - component: {fileID: 207421760}
+  - component: {fileID: 207421764}
   - component: {fileID: 207421763}
   - component: {fileID: 207421761}
   m_Layer: 0
@@ -392,8 +393,10 @@ MonoBehaviour:
   grid1Origin: {fileID: 81343425}
   collapseSpeed: 4
   dropSpeed: 25
+  mergeSpeed: 6
   defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   selectedMaterial: {fileID: 2100000, guid: ace9b4dc6a84e1f4489bb937decacb86, type: 2}
+  hasCollapseEffect: 0
 --- !u!114 &207421761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,20 +410,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pawns:
-  - gameObject: {fileID: 8344456043525709789, guid: 2ee96b1135dfaae428d55b309716a674, type: 3}
+  - gameObject: {fileID: 8344456043525709789, guid: 5282c7cb8a1ba4340b8056f6f319abe6, type: 3}
+    position: {x: 0, y: 0}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: e102b32f2873f18488f052dadf94a628, type: 3}
+    position: {x: 2, y: 0}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: 4cbf2b769127b7947ae07021a5a8ce34, type: 3}
     position: {x: 3, y: 0}
     grid: 0
-  - gameObject: {fileID: 8344456043525709789, guid: 8edf1fd255d0fbd42aa0a66da4f8fabc, type: 3}
-    position: {x: 5, y: 2}
+  - gameObject: {fileID: 8344456043525709789, guid: 4cbf2b769127b7947ae07021a5a8ce34, type: 3}
+    position: {x: 3, y: 1}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: 4cbf2b769127b7947ae07021a5a8ce34, type: 3}
+    position: {x: 4, y: 0}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: 4cbf2b769127b7947ae07021a5a8ce34, type: 3}
+    position: {x: 4, y: 1}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
-    position: {x: 3, y: 2}
+    position: {x: 6, y: 0}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
-    position: {x: 3, y: 3}
+    position: {x: 6, y: 1}
     grid: 0
   - gameObject: {fileID: 8344456043525709789, guid: e4a9a8490b59efd41a12a3700614fccc, type: 3}
-    position: {x: 0, y: 3}
+    position: {x: 7, y: 0}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: 0887f925f3d104843853920cecad3652, type: 3}
+    position: {x: 7, y: 1}
+    grid: 0
+  - gameObject: {fileID: 8344456043525709789, guid: 0887f925f3d104843853920cecad3652, type: 3}
+    position: {x: 7, y: 2}
     grid: 0
 --- !u!114 &207421762
 MonoBehaviour:
@@ -452,6 +473,20 @@ MonoBehaviour:
   isPlayerTurn: 0
   isListening: 0
   holdClickDuration: 0.6
+  mouseDragXMax: 1
+  mouseDragYMin: 1
+--- !u!114 &207421764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207421757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bd697ab345db27428f4a52f499d2604, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &493017530
 GameObject:
   m_ObjectHideFlags: 0
