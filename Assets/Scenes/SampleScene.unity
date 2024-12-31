@@ -228,7 +228,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectPawnSound: {fileID: 8300000, guid: 76e67054eec643043b09622a2cc5146d, type: 3}
   deselectPawnSound: {fileID: 8300000, guid: 4a19c52bb71f33344b4c5cdb1030678c, type: 3}
-  destroyPawnSound: {fileID: 8300000, guid: b15515c47a4eae34a93fc23ebf4374bb, type: 3}
+  destroyPawnSound: {fileID: 8300000, guid: 4dd135bff12db2648a5a3dcbde7e666f, type: 3}
   dropPawnSound: {fileID: 8300000, guid: b4316feff64ce5a40bc1e58ac580d16c, type: 3}
 --- !u!82 &89057728
 AudioSource:
@@ -472,6 +472,10 @@ MonoBehaviour:
   maxPoint: {fileID: 1046675953}
   isPlayerTurn: 0
   isListening: 0
+  test2: {x: 0, y: 0}
+  test2_: {x: 0, y: 0}
+  test3: 0
+  test4: 0
   holdClickDuration: 0.6
   mouseDragXMax: 1
   mouseDragYMin: 1

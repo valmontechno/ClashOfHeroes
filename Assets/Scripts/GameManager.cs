@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
 
     public GridIndex ActivePlayer { get; private set; } = GridIndex.Player0;
 
-    [SerializeField] private int waitingCount = 0;
+    [ReadOnly] [SerializeField] private int waitingCount = 0;
     public int WaitingCount {
         get => waitingCount;
         set {

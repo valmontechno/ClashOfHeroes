@@ -1,6 +1,6 @@
+using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum GridIndex : int
 {
@@ -147,14 +147,13 @@ public class GridManager : MonoBehaviour
         return firstPawn;
     }
 
-
     /// <summary>
     /// Check if the unit at the position can be selected
     /// </summary>
     /// <param name="pawn">
-    /// If so, the selected unit
+    /// The first unit in the column
     /// </param>
-    public bool TryGetSelectedPawn(Vector2Int position, Grid grid, out Pawn pawn)
+    public bool CanSelectPawn(Vector2Int position, Grid grid, out Pawn pawn)
     {
         pawn = GetFirstPawnInCol(position.x, grid);
 
@@ -167,7 +166,13 @@ public class GridManager : MonoBehaviour
         return true;
     }
 
-    public bool TrySelectFirstPawn(int col, Grid grid, out Pawn pawn)
+    /// <summary>
+    /// Check if the first unit in the column can be selected
+    /// </summary>
+    /// <param name="pawn">
+    /// The first unit in the column
+    /// </param>
+    public bool CanSelectFirstPawn(int col, Grid grid, out Pawn pawn)
     {
         pawn = GetFirstPawnInCol(col, grid);
 
